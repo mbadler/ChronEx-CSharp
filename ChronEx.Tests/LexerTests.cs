@@ -15,10 +15,12 @@ namespace ChronEx.Tests
         {
             var n = new Lexer("abc");
             var res = n.returnlist;
-            Assert.AreEqual(2, res.Count);
-            Assert.AreEqual(LexedTokenType.TEXT, res[0].TokenType);
-            Assert.AreEqual("abc", res[0].TokenText);
-            Assert.AreEqual(LexedTokenType.EOF, res[1].TokenType);
+            Assert.AreEqual(3, res.Count);
+            res[0].AssertTokenTypeIs(LexedTokenType.BOF);
+            Assert.AreEqual(LexedTokenType.TEXT, res[1].TokenType);
+            Assert.AreEqual("abc", res[1].TokenText);
+            res[2].AssertTokenTypeIs(LexedTokenType.EOF);
+            
         }
 
         [TestMethod]
@@ -28,13 +30,13 @@ namespace ChronEx.Tests
 def");
            
             var res = n.returnlist;
-            Assert.AreEqual(4, res.Count);
-            Assert.AreEqual(LexedTokenType.TEXT, res[0].TokenType);
-            Assert.AreEqual("abc", res[0].TokenText);
-            Assert.AreEqual(LexedTokenType.NEWLINE, res[1].TokenType);
-            Assert.AreEqual(LexedTokenType.TEXT, res[2].TokenType);
-            Assert.AreEqual("def", res[2].TokenText);
-            Assert.AreEqual(LexedTokenType.EOF, res[3].TokenType);
+            Assert.AreEqual(5, res.Count);
+            Assert.AreEqual(LexedTokenType.TEXT, res[1].TokenType);
+            Assert.AreEqual("abc", res[1].TokenText);
+            Assert.AreEqual(LexedTokenType.NEWLINE, res[2].TokenType);
+            Assert.AreEqual(LexedTokenType.TEXT, res[3].TokenType);
+            Assert.AreEqual("def", res[3].TokenText);
+            Assert.AreEqual(LexedTokenType.EOF, res[4].TokenType);
 
         }
 
@@ -46,13 +48,13 @@ def");
             var n = new Lexer(s);
            
             var res = n.returnlist;
-            Assert.AreEqual(4, res.Count);
-            Assert.AreEqual(LexedTokenType.DELIMITEDTEXT, res[0].TokenType);
-            Assert.AreEqual("abc", res[0].TokenText);
-            Assert.AreEqual(LexedTokenType.NEWLINE, res[1].TokenType);
-            Assert.AreEqual(LexedTokenType.DELIMITEDTEXT, res[2].TokenType);
-            Assert.AreEqual("def", res[2].TokenText);
-            Assert.AreEqual(LexedTokenType.EOF, res[3].TokenType);
+            Assert.AreEqual(5, res.Count);
+            Assert.AreEqual(LexedTokenType.DELIMITEDTEXT, res[1].TokenType);
+            Assert.AreEqual("abc", res[1].TokenText);
+            Assert.AreEqual(LexedTokenType.NEWLINE, res[2].TokenType);
+            Assert.AreEqual(LexedTokenType.DELIMITEDTEXT, res[3].TokenType);
+            Assert.AreEqual("def", res[3].TokenText);
+            Assert.AreEqual(LexedTokenType.EOF, res[4].TokenType);
 
         }
 
@@ -65,9 +67,9 @@ def");
 
            
             var res = n.returnlist;
-            Assert.AreEqual(2, res.Count);
-            Assert.AreEqual(LexedTokenType.DELIMITEDTEXT, res[0].TokenType);
-            Assert.AreEqual("abc'\\r\\n'def", res[0].TokenText);
+            Assert.AreEqual(3, res.Count);
+            Assert.AreEqual(LexedTokenType.DELIMITEDTEXT, res[1].TokenType);
+            Assert.AreEqual("abc'\\r\\n'def", res[1].TokenText);
            
 
         }
@@ -81,9 +83,9 @@ def");
 
          
             var res = n.returnlist;
-            Assert.AreEqual(3, res.Count);
-            Assert.AreEqual(LexedTokenType.REGEX, res[0].TokenType);
-            Assert.AreEqual("thisisaregex", res[0].TokenText);
+            Assert.AreEqual(4, res.Count);
+            Assert.AreEqual(LexedTokenType.REGEX, res[1].TokenType);
+            Assert.AreEqual("thisisaregex", res[1].TokenText);
 
 
         }
@@ -96,9 +98,9 @@ def");
             var n = new Lexer(s);
 
             var res = n.returnlist;
-            Assert.AreEqual(2, res.Count);
-            Assert.AreEqual(LexedTokenType.REGEX, res[0].TokenType);
-            Assert.AreEqual("thisis\\[aregex", res[0].TokenText);
+            Assert.AreEqual(3, res.Count);
+            Assert.AreEqual(LexedTokenType.REGEX, res[1].TokenType);
+            Assert.AreEqual("thisis\\[aregex", res[1].TokenText);
 
 
         }
@@ -111,9 +113,9 @@ def");
             var n = new Lexer(s);
            
             var res = n.returnlist;
-            Assert.AreEqual(2, res.Count);
-            Assert.AreEqual(LexedTokenType.REGEX, res[0].TokenType);
-            Assert.AreEqual("thisis/aregex", res[0].TokenText);
+            Assert.AreEqual(3, res.Count);
+            Assert.AreEqual(LexedTokenType.REGEX, res[1].TokenType);
+            Assert.AreEqual("thisis/aregex", res[1].TokenText);
 
 
         }
@@ -125,9 +127,9 @@ def");
             var n = new Lexer(s);
 
             var res = n.returnlist;
-            Assert.AreEqual(4, res.Count);
-            Assert.AreEqual(LexedTokenType.NUMBER, res[0].TokenType);
-            Assert.AreEqual("1234567", res[0].TokenText);
+            Assert.AreEqual(5, res.Count);
+            Assert.AreEqual(LexedTokenType.NUMBER, res[1].TokenType);
+            Assert.AreEqual("1234567", res[1].TokenText);
 
         }
 
@@ -140,10 +142,10 @@ def");
 
 
             var res = n.returnlist;
-            Assert.AreEqual(5, res.Count);
-            Assert.AreEqual(LexedTokenType.NUMBER, res[0].TokenType);
-            Assert.AreEqual("1234567", res[0].TokenText);
-            Assert.AreEqual(LexedTokenType.OPENCURLY, res[1].TokenType);
+            Assert.AreEqual(6, res.Count);
+            Assert.AreEqual(LexedTokenType.NUMBER, res[1].TokenType);
+            Assert.AreEqual("1234567", res[1].TokenText);
+            Assert.AreEqual(LexedTokenType.OPENCURLY, res[2].TokenType);
 
 
         }
@@ -157,9 +159,9 @@ def");
 
 
             var res = n.returnlist;
-            Assert.AreEqual(4, res.Count);
-            Assert.AreEqual(LexedTokenType.NUMBER, res[0].TokenType);
-            Assert.AreEqual("12345.67", res[0].TokenText);
+            Assert.AreEqual(5, res.Count);
+            Assert.AreEqual(LexedTokenType.NUMBER, res[1].TokenType);
+            Assert.AreEqual("12345.67", res[1].TokenText);
 
 
         }

@@ -8,7 +8,7 @@ namespace ChronEx.Processor
 {
     public class Tracker
     {
-        private ParsedTree tree;
+        private ScriptSyntaxTreeElement tree;
         IEnumerator<ElementBase> _evntEnum = null;
         public List<IChronologicalEvent> StoredList = null;
 
@@ -18,10 +18,10 @@ namespace ChronEx.Processor
         internal Dictionary<ElementBase,object> StateBag = new Dictionary<ElementBase,object>();
         
         internal int StackDepth = 0;
-        public Tracker(ParsedTree tree)
+        public Tracker(ScriptSyntaxTreeElement tree)
         {
             this.tree = tree;
-            _evntEnum = tree.GetElements().GetEnumerator();
+            _evntEnum = tree.Statements.GetEnumerator();
             //element trees are guarunteed to have at lest one element 
             //so we can sfly move next
             _evntEnum.MoveNext();

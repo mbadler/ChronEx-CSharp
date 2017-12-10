@@ -24,6 +24,8 @@ namespace ChronEx.Parser
         StringBuilder buffer = new StringBuilder(); //contains the accumulate selected chars, reused to mimize allocations
         LexedTokenType PersumedTokenType = LexedTokenType.BOF;
         public List<LexedToken> returnlist = new List<LexedToken>();
+
+        
         /// <summary>
         /// The position of the text in the current line
         /// </summary>
@@ -52,7 +54,8 @@ namespace ChronEx.Parser
 
         private void LexPattern(string Pattern)
         {
-            
+            //always add a BOF 
+            returnlist.Add(new LexedToken(LexedTokenType.BOF));
             PatternArray = Pattern.ToCharArray();
 
             //walk thru each char in the pattern and build the tokens
@@ -99,8 +102,8 @@ namespace ChronEx.Parser
             }
 
             // if we poped out of the loop and we still have a persumed type then 
-            // finish off the persumed toke
-            if(PersumedTokenType != LexedTokenType.UNKNOWN)
+            // finish off the persumed token - unless its still BOF in which case t he file was empty
+            if(PersumedTokenType != LexedTokenType.UNKNOWN && PersumedTokenType != LexedTokenType.BOF)
             {
                 CaptureToken(PersumedTokenType);
             }

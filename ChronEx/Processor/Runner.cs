@@ -10,7 +10,7 @@ namespace ChronEx.Processor
     
     public class Runner
     {
-        protected ParsedTree tree;
+        protected ScriptSyntaxTreeElement tree;
 
         protected IEnumerable<IChronologicalEvent> EventList { get; }
 
@@ -26,7 +26,7 @@ namespace ChronEx.Processor
 
         }
 
-        public Runner(ParsedTree tree,IEnumerable<IChronologicalEvent> EventList)
+        public Runner(ScriptSyntaxTreeElement tree,IEnumerable<IChronologicalEvent> EventList)
         {
             this.tree = tree;
             this.EventList = EventList;
@@ -63,7 +63,7 @@ namespace ChronEx.Processor
         protected (ChronExMatches,int) PerformMatch(bool ShortCircuit,bool Store)
         {
             // get the first element this is the lowest level filter to launching a tracker
-            var getlemes = tree.GetElements();
+            var getlemes = tree.Statements;
             if (!getlemes.Any())
             {
                 return (null,0);
@@ -149,7 +149,7 @@ namespace ChronEx.Processor
             return (null,matchcount);
         }
 
-        private void StartNewTracker(ParsedTree tree)
+        private void StartNewTracker(ScriptSyntaxTreeElement tree)
         {
             // for now just adds a new genric tracker to the list
             trackList.Add(new Tracker(tree));

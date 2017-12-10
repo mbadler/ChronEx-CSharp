@@ -54,6 +54,9 @@ namespace ChronEx.Models.AST
         /// this is usefull for elements that don't implement thrier own ReturnParseTreeFromExistingElement
         /// </summary>
         public abstract int ZOrder { get;  }
+
+        public abstract void InitializeFromParseStream(ParseProcessState state);
+       
     }
 
    

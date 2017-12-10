@@ -47,9 +47,24 @@ namespace ChronEx.Models.AST
     public class SpecifiedEventNameSelector:Selector
     {
         public string EventName { get; set; }
-       
+        public bool IsDotWildcard { get; set; }
+
+        public override void InitializeFromParseStream(ParseProcessState state)
+        {
+            
+            this.EventName = state.Current().Value.TokenText;
+            if(this.EventName == ".")
+            {
+                IsDotWildcard = true;
+            }
+        }
+
         internal override IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker)
         {
+            if(IsDotWildcard)
+            {
+                return IsMatchResult.IsMatch;
+            }
            return (string.Compare(chronevent.EventName, this.EventName, true) == 0)
                 ? Processor.IsMatchResult.IsMatch : Processor.IsMatchResult.IsNotMatch;
         }
@@ -61,20 +76,7 @@ namespace ChronEx.Models.AST
         }
     }
 
-    public class DotSelector : Selector
-    {
-        //. matches everything so its always true
-        internal override IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker)
-        {
-            return Processor.IsMatchResult.IsMatch;
-        }
-
-        internal override bool IsPotentialMatch(IChronologicalEvent chronevent)
-        {
-            //. matches everything so its always true
-            return true;
-        }
-    }
+  
 
     public class RegexSelector : Selector
     {
@@ -103,6 +105,11 @@ namespace ChronEx.Models.AST
                 rgx = new Regex(MatchPattern);
             }
             return rgx.IsMatch(Text);
+        }
+
+        public override void InitializeFromParseStream(ParseProcessState state)
+        {
+            this.MatchPattern = state.Current().Value.TokenText;
         }
     }
 

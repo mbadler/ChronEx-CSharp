@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using ChronEx.Parser;
 using ChronEx.Processor;
 
 namespace ChronEx.Models.AST
@@ -13,7 +14,10 @@ namespace ChronEx.Models.AST
         //Currently the highest zorder
         public override int ZOrder => 1000;
 
-       
+        public override void InitializeFromParseStream(ParseProcessState state)
+        {
+            //nothing to do
+        }
 
         internal override IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker)
         {

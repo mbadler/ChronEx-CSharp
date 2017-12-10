@@ -1,4 +1,5 @@
 ﻿using ChronEx.Models;
+using ChronEx.Parser;
 using ChronEx.Processor;
 using System;
 using System.Collections.Generic;
@@ -72,6 +73,14 @@ namespace ChronEx.Tests
             for (int i = 0; i < MatchList.Count(); i++)
             {
                 MatchList[i].CapturedEvents.AssertMatchesAreEqual(AssertAsList[i]);
+            }
+        }
+
+        public static void AssertTokenTypeIs(this LexedToken token,LexedTokenType ExpectedTokenType)
+        {
+            if (token.TokenType != ExpectedTokenType)
+            {
+                throw new Exception(String.Format("Token type {0} Expected but {1} found", token.TokenType.ToString(), ExpectedTokenType.ToString()));
             }
         }
     }

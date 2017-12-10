@@ -13,7 +13,7 @@ namespace ChronEx.Parser
         // split it by statements
         // directly create th AST from the statements
         // text
-        public ParsedTree ParsePattern(string Pattern)
+        public ScriptSyntaxTreeElement ParsePattern(string Pattern)
         {
             var Lex = new Lexer(Pattern);
 
@@ -24,142 +24,160 @@ namespace ChronEx.Parser
             
         }
 
-        public ParsedTree CreateAST(List<LexedToken> tokens)
+        public ScriptSyntaxTreeElement CreateAST(List<LexedToken> tokens)
         {
-            var p = new ParsedTree();
-            //split the current token into individual statements
-            var statements = SplitTokensIntoStatements(tokens);
-
-
+            var p = new ScriptSyntaxTreeElement();
             //if its a empty tree - just exit
-            if(tokens.Count==2
+            if (tokens.Count == 2
                 && tokens[0].TokenType == LexedTokenType.BOF
                 && tokens[1].TokenType == LexedTokenType.EOF)
             {
                 return p;
             }
-            var ElList = new List<ElementBase>();
-            //run thru the individual statemnets
-            foreach (var item in statements)
+            var ParseState = new ParseProcessState()
             {
-                ElList.Clear();
-                //this is the element that will be added to the tree
-                //we will create this based ont he values we find in the stream and wrap /unwrap as needed based on what we find
-                ElementBase CurrentElement = null;
-                //we will keep track of the token index for validation
-                var tokenindex = 0;
+                Tokens = tokens,
+                CurrentIndex = -1,
+                State = StatementState.BOF
                 
-                foreach (var token in item)
-                {
-                    tokenindex++;
-                    ElementBase tempElem = null;
-                    switch (token.TokenType)
-                    {
-                        case LexedTokenType.DASH:
-                            {
-                                tempElem = new NoCaptureSyntax();
-                                break;
-                            }
-                        case LexedTokenType.DELIMITEDTEXT:
-                        case LexedTokenType.TEXT:
-                            {
-                                if (tempElem != null)
-                                {
-                                    throwParserException(token, "Unexpected Text");
-                                }
-                                if (token.TokenText == ".")
-                                {
-                                    tempElem = new DotSelector();
-                                }
-                                else
-                                {
-                                    tempElem = new SpecifiedEventNameSelector()
-                                    {
-                                        EventName = token.TokenText
-                                    };
-                                }
-
-                                
-                                break;
-                            }
+            };
 
 
-                        case LexedTokenType.REGEX:
-                            {
-                                if (tempElem != null)
-                                {
-                                    throwParserException(token, "Unexpected Regex");
-                                }
-
-                                tempElem = new RegexSelector()
-                                {
-                                    MatchPattern = token.TokenText
-                                };
-                               
-                                break;
-                            }
-
-
-                        case LexedTokenType.EXCLAMATION:
-                            {
-                                
-                                tempElem = new NegatedSyntax();
-                                break;
-                            }
-                        case LexedTokenType.PLUS:
-                        case LexedTokenType.QUESTIONMARK:
-                        case LexedTokenType.STAR:
-                            {
-                                tempElem = new SymbolQuantifier()
-                                {
-                                    QuantifierSymbol = token.TokenText[0]
-                                };
-
-                                break;
-                            }
-                        case LexedTokenType.STATEMENTEND:
-
-                            {
-
-                                //build the total element
-                                //order the element list by zorder
-                                var nlist = ElList.OrderByDescending(x => x.ZOrder);
-                                ElementBase parelem = null;
-                                CurrentElement = null;
-                                foreach (var elem in nlist)
-                                {
-                                    if(CurrentElement == null)
-                                    {
-                                        CurrentElement = elem;
-                                        parelem = elem;
-                                        continue;
-                                    }
-                                    var elemC = parelem as ContainerElement;
-                                    if (elemC == null)
-                                    {
-                                        throw new Exception("A selector cannot function as a container");
-                                    }
-                                    elemC.AddContainedElement(elem);
-                                    parelem = elem;
-                                }
-                                p.AddElement(CurrentElement);
-                               
-                                tempElem = null;
-                                break;
-
-                            }
-                        default:
-                            break;
-                    }
-
-                    if(tempElem != null)
-                    {
-                        ElList.Add(tempElem);
-                    }
-                }
-                
-            }
+            p.InitializeFromParseStream(ParseState);
             return p;
+            //split the current token into individual statements
+            //var statements = SplitTokensIntoStatements(tokens);
+
+
+            ////if its a empty tree - just exit
+            //if(tokens.Count==2
+            //    && tokens[0].TokenType == LexedTokenType.BOF
+            //    && tokens[1].TokenType == LexedTokenType.EOF)
+            //{
+            //    return p;
+            //}
+            //var ElList = new List<ElementBase>();
+            ////run thru the individual statemnets
+            //foreach (var item in statements)
+            //{
+            //    ElList.Clear();
+            //    //this is the element that will be added to the tree
+            //    //we will create this based ont he values we find in the stream and wrap /unwrap as needed based on what we find
+            //    ElementBase CurrentElement = null;
+            //    //we will keep track of the token index for validation
+            //    var tokenindex = 0;
+                
+            //    foreach (var token in item)
+            //    {
+            //        tokenindex++;
+            //        ElementBase tempElem = null;
+            //        switch (token.TokenType)
+            //        {
+            //            case LexedTokenType.DASH:
+            //                {
+            //                    tempElem = new NoCaptureSyntax();
+            //                    break;
+            //                }
+            //            case LexedTokenType.DELIMITEDTEXT:
+            //            case LexedTokenType.TEXT:
+            //                {
+            //                    if (tempElem != null)
+            //                    {
+            //                        throwParserException(token, "Unexpected Text");
+            //                    }
+            //                    if (token.TokenText == ".")
+            //                    {
+            //                        tempElem = new DotSelector();
+            //                    }
+            //                    else
+            //                    {
+            //                        tempElem = new SpecifiedEventNameSelector()
+            //                        {
+            //                            EventName = token.TokenText
+            //                        };
+            //                    }
+
+                                
+            //                    break;
+            //                }
+
+
+            //            case LexedTokenType.REGEX:
+            //                {
+            //                    if (tempElem != null)
+            //                    {
+            //                        throwParserException(token, "Unexpected Regex");
+            //                    }
+
+            //                    tempElem = new RegexSelector()
+            //                    {
+            //                        MatchPattern = token.TokenText
+            //                    };
+                               
+            //                    break;
+            //                }
+
+
+            //            case LexedTokenType.EXCLAMATION:
+            //                {
+                                
+            //                    tempElem = new NegatedSyntax();
+            //                    break;
+            //                }
+            //            case LexedTokenType.PLUS:
+            //            case LexedTokenType.QUESTIONMARK:
+            //            case LexedTokenType.STAR:
+            //                {
+            //                    tempElem = new SymbolQuantifier()
+            //                    {
+            //                        QuantifierSymbol = token.TokenText[0]
+            //                    };
+
+            //                    break;
+            //                }
+            //            case LexedTokenType.STATEMENTEND:
+
+            //                {
+
+            //                    //build the total element
+            //                    //order the element list by zorder
+            //                    var nlist = ElList.OrderByDescending(x => x.ZOrder);
+            //                    ElementBase parelem = null;
+            //                    CurrentElement = null;
+            //                    foreach (var elem in nlist)
+            //                    {
+            //                        if(CurrentElement == null)
+            //                        {
+            //                            CurrentElement = elem;
+            //                            parelem = elem;
+            //                            continue;
+            //                        }
+            //                        var elemC = parelem as ContainerElement;
+            //                        if (elemC == null)
+            //                        {
+            //                            throw new Exception("A selector cannot function as a container");
+            //                        }
+            //                        elemC.AddContainedElement(elem);
+            //                        parelem = elem;
+            //                    }
+            //                    p.AddElement(CurrentElement);
+                               
+            //                    tempElem = null;
+            //                    break;
+
+            //                }
+            //            default:
+            //                break;
+            //        }
+
+            //        if(tempElem != null)
+            //        {
+            //            ElList.Add(tempElem);
+            //        }
+            //    }
+                
+            //}
+            //return p;
         }
 
         private ElementBase AddTempElemToCurrentElement(ElementBase ParentElement, ElementBase tempElem,LexedToken t)

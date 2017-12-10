@@ -164,5 +164,31 @@ namespace ChronEx.Models.AST
         {
             return true;
         }
+
+        public override void InitializeFromParseStream(ParseProcessState state)
+        {
+            switch (state.Current().Value.TokenType)
+            {
+                
+                case LexedTokenType.PLUS:
+                    {
+                        this.QuantifierSymbol = '+';
+                        break;
+                    }
+                case LexedTokenType.STAR:
+                    {
+                        this.QuantifierSymbol = '*';
+                        break;
+                    }
+                case LexedTokenType.QUESTIONMARK:
+                    {
+                        this.QuantifierSymbol = '?';
+                        break;
+                    }
+
+                default:
+                    throw new Exception($"Internal Error: A non valid symbol '{state.Current().Value.TokenType.ToString()}' was passed as SymbolQuantifier. This is a bug");
+            }
+        }
     }
 }

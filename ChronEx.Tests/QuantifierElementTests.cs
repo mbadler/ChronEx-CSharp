@@ -14,7 +14,7 @@ namespace ChronEx.Tests
         [TestMethod]
         public void Quant_Symbol_CorrectASTCreatedWithNegate()
         {
-            var n = new ChronExParser().ParsePattern("!abc+").GetElements().ToList();
+            var n = new ChronExParser().ParsePattern("!abc+").Statements.ToList();
 
             Assert.IsTrue(n[0] is SymbolQuantifier);
             var b = (SymbolQuantifier)n[0];
@@ -27,7 +27,7 @@ namespace ChronEx.Tests
         [TestMethod]
         public void Quant_Symbol_CorrectSymbolAssigned()
         {
-            var n = new ChronExParser().ParsePattern("abc+").GetElements().ToList();
+            var n = new ChronExParser().ParsePattern("abc+").Statements.ToList();
 
             Assert.IsTrue(n[0] is SymbolQuantifier);
             var b = (SymbolQuantifier)n[0];

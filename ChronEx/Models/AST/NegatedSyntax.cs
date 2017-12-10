@@ -10,25 +10,12 @@ namespace ChronEx.Models.AST
     {
         public override int ZOrder => 100;
 
-        //public override ElementBase ReturnParseTreeFromExistingElement(ElementBase ExisitngElement)
-        //{
-        //    //i am usually the top of the stack , except if its a DashSyntax
-        //    // if there is no existign the just return me
-        //    if (ExisitngElement == null)
-        //    {
-        //        return this;
-        //    }
+        public override void InitializeFromParseStream(ParseProcessState state)
+        {
+            //nothing really to do here , negation is negation
+        }
 
-        //    // if the existing element is a dash syntax then add myseld to it
-        //    if(ExisitngElement is NoCaptureSyntax)
-        //    {
-        //        ((NoCaptureSyntax)ExisitngElement).AddContainedElement(this);
-        //        return ExisitngElement;
-        //    }
-
-        //    this.AddContainedElement(ExisitngElement);
-        //    return this;
-        //}
+       
 
         internal override IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker)
         {
