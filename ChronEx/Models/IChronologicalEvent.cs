@@ -8,5 +8,7 @@ namespace ChronEx.Models
     {
         string EventName { get;  }
         DateTime? EventDateTime { get; }
+
+        string Describe();
     }
 }

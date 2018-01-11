@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace ChronEx.Processor
 {
-    
+
     public class Runner
     {
         protected ScriptSyntaxTreeElement tree;
@@ -20,13 +20,15 @@ namespace ChronEx.Processor
         /// </summary>
         protected List<Tracker> CapturedtrackList = new List<Tracker>();
 
+        protected int numOfMatches = 0;
+
         // for eventual streaming implementation
         public Runner()
         {
 
         }
 
-        public Runner(ScriptSyntaxTreeElement tree,IEnumerable<IChronologicalEvent> EventList)
+        public Runner(ScriptSyntaxTreeElement tree, IEnumerable<IChronologicalEvent> EventList)
         {
             this.tree = tree;
             this.EventList = EventList;
@@ -37,13 +39,13 @@ namespace ChronEx.Processor
         //For the future we can look at creating a (Pattern Directed Engine)
         public virtual bool IsMatch()
         {
-            return PerformMatch(true,false).Item2 > 0;
+            return PerformMatch(true, false).Item2 > 0;
         }
 
         //runs thru the events and returns the number of matches found
         public virtual int MatchCount()
         {
-            return PerformMatch(false,false).Item2 ;
+            return PerformMatch(false, false).Item2;
         }
 
         /// <summary>
@@ -60,100 +62,80 @@ namespace ChronEx.Processor
         /// </summary>
         /// <param name="ShortCircuit">Indicates to return as soon as a match is found</param>
         /// <returns>if short circuit 1 for match 0 for no matches , if not short circuit will return the number of matches found</returns>
-        protected (ChronExMatches,int) PerformMatch(bool ShortCircuit,bool Store)
+        protected (ChronExMatches, int) PerformMatch(bool ShortCircuit, bool Store)
         {
+            return PerformMatch(ShortCircuit, Store, ChronExMatchOptions.Default);
+        }
+
+        /// <summary>
+        /// Performs pattern matching
+        /// </summary>
+        /// <param name="ShortCircuit">Indicates to return as soon as a match is found</param>
+        /// <returns>if short circuit 1 for match 0 for no matches , if not short circuit will return the number of matches found</returns>
+        protected (ChronExMatches, int) PerformMatch(bool ShortCircuit, bool Store, ChronExMatchOptions options)
+        {
+            var debugTrackers = new List<Tracker>();
             // get the first element this is the lowest level filter to launching a tracker
             var getlemes = tree.Statements;
             if (!getlemes.Any())
             {
-                return (null,0);
-            }
-            var firstElem = getlemes.First();
-
-            //if there are no elements then its of course not a mathc
-            if (firstElem == null)
-            {
                 return (null, 0);
             }
-
-            var matchcount = 0;
-
-            //Loop thru the event list and for each event do 2 things
-            // 1. Determine if we can set up a tracker for this event
-            // 2. Broadcast this event to all trackers to allow them to match themselves
-            foreach (var even in EventList)
+            var firstElem = getlemes.First();
+            List<Tracker> FoundTrackers = new List<Tracker>();
+            Tracker CurrentTracker = null;
+            var eventenum = EventList.GetEnumerator();
+            eventenum.MoveNext();
+            while (eventenum.Current!=null)
             {
-                //check if we should create a new tracker
-                if (firstElem.IsPotentialMatch(even))
+                //if we don't have a tracker yet then determine if this event will possible start one
+                if (CurrentTracker == null)
                 {
-                    StartNewTracker(tree);
-                }
-                //loop thru all the trackers and send them the event and see if any of them match
-                //if any do then immediatly exit with a true
-
-                //the remove list will maintain a list of trackers that have detrmine that they cannot match
-                //and they will be removed from the tracker list after the foreach
-                List<Tracker> _removeList = new List<Tracker>();
-                foreach (var trk in trackList)
-                {
-                    // submit to the tracker for processing
-                    // since this is only the match function
-                    // if any of the trackers have a positive result - return right away
-                    var m = trk.ProcessEvent(even,Store);
-                    if (m == Processor.IsMatchResult.IsMatch)
+                    if (firstElem.IsPotentialMatch(eventenum.Current))
                     {
-                        if (ShortCircuit)
-                        {
-                            return (null,1);
-                        }
-                        else
-                        {
-                            //increment the match count and add it to the remove list
-                            
-                            matchcount++;
-                            _removeList.Add(trk);
-                            if (Store)
-                                CapturedtrackList.Add(trk);
-                        }
-                        
+                        CurrentTracker = new Tracker(tree);
                     }
-                    //if no match then add it to the remove list
-                    if (m == Processor.IsMatchResult.IsNotMatch)
+                    else
                     {
-                        _removeList.Add(trk);
+                        //useually the tracker and the elemtn would move the line forward
+                        //but since there is not tracker and there is no potential match
+                        //the runner needs to move it forward
+                        eventenum.MoveNext();
+                        continue;
                     }
                 }
-
-                //remove all trackers that are in the remove list
-                foreach (var trk in _removeList)
+                var res = CurrentTracker.ProcessEvents(eventenum);
+                if (res.Is_Match())
                 {
-                    trackList.Remove(trk);
+                    FoundTrackers.Add(CurrentTracker);
                 }
-
+                //else
+                //{
+                //    //we need to manually move the  the event
+                //    eventenum.MoveNext();
+                //}
+                if(CurrentTracker!=null)
+                {
+                    debugTrackers.Add(CurrentTracker);
+                }
+                CurrentTracker = null;
             }
 
-            // at this point we have run out of events and non of the trackers have claimed sucess so return false
-            if(Store)
+            var lex = new ChronExMatches();
+            foreach (var item in FoundTrackers)
             {
-                var lst = new ChronExMatches();
-                foreach (var item in CapturedtrackList)
-                {
-                    lst.Add(new ChronExMatch()
-                    {
-                        CapturedEvents = item.StoredList
-                    });
-
-                }
-                return (lst, matchcount);
+                var cmatch = new ChronExMatch();
+                cmatch.CapturedEvents = item.StoredList;
+                lex.Add(cmatch);
             }
-            return (null,matchcount);
-        }
+            lex.DebugTrackers = debugTrackers;
+            return (lex, lex.Count);
 
-        private void StartNewTracker(ScriptSyntaxTreeElement tree)
-        {
-            // for now just adds a new genric tracker to the list
-            trackList.Add(new Tracker(tree));
+
         }
+      
+
+
 
         
     }

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 
 namespace ChronEx.Parser
 {
+    [DebuggerDisplayAttribute("TokenType = {TokenType} , TokenText = {TokenText}")]
     public struct LexedToken
     {
         //many single chars can be easilly converted to token with a simple lookup

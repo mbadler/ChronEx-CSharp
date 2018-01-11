@@ -4,8 +4,9 @@ using System.Text;
 
 namespace ChronEx.Processor
 {
-    public class ChronExMatches:List<ChronExMatch>
+    public class ChronExMatches : List<ChronExMatch>
     {
+        public List<Tracker> DebugTrackers { get; internal set; }
     }
 }
  

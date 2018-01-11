@@ -23,11 +23,12 @@ namespace ChronEx.Parser
         {
             {"NEGATEDSYNTAX",Ntp(StatementState.Negation,()=>new NegatedSyntax()) },
             {"NOCAPTURESYNTAX",Ntp(StatementState.NoCapture,()=>new NoCaptureSyntax()) },
-            {"SYMBOLQUANTIFIER",Ntp(StatementState.SymbolQuantifier,()=>new SymbolQuantifier()) },
+            {"SYMBOLQUANTIFIER",Ntp(StatementState.SymbolQuantifier,()=>new SymbolQuantifierSyntax()) },
             {"NAMESELECTOR",Ntp(StatementState.Selector,()=>new SpecifiedEventNameSelector()) },
             {"REGEXSELECTOR",Ntp(StatementState.Selector,()=>new RegexSelector()) },
             {"STATEMENT",Ntp(StatementState.BOS,()=>new StatementElement()) },
-            {"NEWLINE",Ntp(StatementState.BOS,null )}
+            {"NEWLINE",Ntp(StatementState.BOS,null )},
+            {"NUMERICQUANTIFIER",Ntp(StatementState.NumericQuantifierStart,()=>new NumericQuantifierSyntax()) }
         };
         //in child parser
 
@@ -75,6 +76,11 @@ namespace ChronEx.Parser
             AddToRoute(tempTree, LexedTokenType.QUESTIONMARK, new TransitionRecord("SYMBOLQUANTIFIER"), StatementState.Selector);
             AddToRoute(tempTree, LexedTokenType.PLUS, new TransitionRecord("SYMBOLQUANTIFIER"), StatementState.Selector);
             AddToRoute(tempTree, LexedTokenType.STAR, new TransitionRecord("SYMBOLQUANTIFIER"), StatementState.Selector);
+
+            //numeric quantifier section
+
+            AddToRoute(tempTree, LexedTokenType.OPENCURLY, new TransitionRecord("NUMERICQUANTIFIER"), StatementState.Selector);
+
             return tempTree;
         }
         public static void AddToRoute(Dictionary<StatementState, AllowedTransition> tempTree,
@@ -159,5 +165,7 @@ namespace ChronEx.Parser
 
 
         public string Factory { get; set; }
+
+        public static TransitionRecord Blank() => new TransitionRecord(""); 
     }
 }

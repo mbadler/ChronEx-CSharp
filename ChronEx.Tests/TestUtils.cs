@@ -20,6 +20,22 @@ namespace ChronEx.Tests
                             });
         }
 
+        public static IEnumerable<ChronologicalEvent> ChronListFromString(string s)
+        {
+            var a = DateTime.MinValue;
+
+            return s.Split(' ')
+                            .Select((y) =>
+                            {a = a.AddSeconds(1);
+                                return new ChronologicalEvent()
+                                {
+                                    EventName = y,
+                                    EventDateTime = a
+                                };
+                                
+                            });
+        }
+
         public static void AssertMatchesAreEqual(this List<IChronologicalEvent> MatchList,string AssertedList)
         {
             if (MatchList == null)
@@ -51,6 +67,22 @@ namespace ChronEx.Tests
             }
         }
 
+        public static void AssertNoMatches(this ChronExMatches MatchList)
+        {
+            if(MatchList.Any())
+            {
+                throw new Exception("No matches were expected but the following were found:" +
+                DescribeMatchList(MatchList));
+
+            }
+        }
+
+        private static string DescribeMatchList(ChronExMatches MatchList)
+        {
+            
+               return string.Join('\n', MatchList.Select(x => string.Join(",", x.CapturedEvents.Select(y => y.EventName))));
+        }
+
         public static void AssertMatchesAreEqual(this ChronExMatches MatchList, string AssertedList)
         {
             if (MatchList == null)
@@ -58,15 +90,15 @@ namespace ChronEx.Tests
                 throw new ArgumentNullException(nameof(MatchList));
             }
 
-            if (string.IsNullOrWhiteSpace(AssertedList))
-            {
-                throw new ArgumentException("Asserted List", nameof(AssertedList));
-            }
+            //if (string.IsNullOrWhiteSpace(AssertedList))
+            //{
+            //    throw new ArgumentException("Asserted List", nameof(AssertedList));
+            //}
 
             var AssertAsList = AssertedList.Split(Environment.NewLine);
             if (MatchList.Count != AssertAsList.Count())
             {
-                throw new Exception($"Expected {AssertAsList.Count()} matches but Match list contained {MatchList.Count}");
+                throw new Exception($"Expected {AssertAsList.Count()} matches but Match list contained {MatchList.Count} \n{DescribeMatchList(MatchList)}");
             }
 
 
@@ -82,6 +114,16 @@ namespace ChronEx.Tests
             {
                 throw new Exception(String.Format("Token type {0} Expected but {1} found", token.TokenType.ToString(), ExpectedTokenType.ToString()));
             }
+        }
+
+        public static void AssertTokenIs(this LexedToken token, LexedTokenType ExpectedTokenType,object ExpectedTokenValue)
+        {
+            token.AssertTokenTypeIs(ExpectedTokenType);
+            if (token.TokenText != ExpectedTokenValue.ToString() )
+            {
+                throw new Exception(String.Format("Token value {0} Expected but {1} found", ExpectedTokenValue.ToString(), token.TokenText.ToString()));
+            }
+
         }
     }
 }

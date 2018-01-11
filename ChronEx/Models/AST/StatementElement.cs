@@ -16,6 +16,11 @@ namespace ChronEx.Models.AST
     {
         public override int ZOrder => 0;
 
+        public override string Describe()
+        {
+            return "Statement";
+        }
+
         private List<ElementBase> unorderdelements = new List<ElementBase>();
         public override void InitializeFromParseStream(ParseProcessState state)
         {
@@ -60,9 +65,9 @@ namespace ChronEx.Models.AST
             }
         }
 
-        internal override IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker)
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
         {
-            return ContainedElement.IsMatch(chronevent, Tracker);
+            return ContainedElement.IsMatch(chronevent, Tracker, CapturedList);
         }
 
         internal override bool IsPotentialMatch(IChronologicalEvent chronevent)

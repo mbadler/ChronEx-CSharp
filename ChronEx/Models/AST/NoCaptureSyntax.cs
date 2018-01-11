@@ -19,20 +19,31 @@ namespace ChronEx.Models.AST
             //nothing to do
         }
 
-        internal override IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker)
+        public override string Describe()
         {
-            var res = ContainedElement.IsMatch(chronevent, Tracker);
-            if (res == IsMatchResult.IsMatch)
-            {
-                return IsMatchResult.IsMatch_NoCapture;
-            }
-            if(res== IsMatchResult.Continue)
-            {
-                return IsMatchResult.Continue_NoCapture;
-            }
-            return res;
+            return "No Capture";
         }
 
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        {
+            var a = ContainedElement.IsMatch(chronevent, Tracker, CapturedList);
+            
+            return a; 
+           
+        }
+
+
+        internal override MatchResult BeginProcessMatch(Tracker tracker, IEnumerator<IChronologicalEvent> eventenum, List<IChronologicalEvent> CapturedList)
+        {
+            tracker.DebugStart(this);
+            //we don't want to capture so send in a null
+            var r = ContainedElement.BeginProcessMatch(tracker, eventenum, null);
+            if(tracker.DebugEnabled)
+            {
+                tracker.SaveDBGResult(this, r);
+            }
+            return r;
+        }
         internal override bool IsPotentialMatch(IChronologicalEvent chronevent)
         {
             //just forward to the child 

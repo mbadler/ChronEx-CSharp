@@ -32,7 +32,13 @@ namespace ChronEx.Parser
             return newElement;
         }
 
-        public LexedToken? MoveNext()
+        /// <summary>
+        /// Moves to the next token , additionally ensures that the token transition is valid
+        /// generally looks at the global token tree , but subclasses can provide thier own allowed transitions to provide dynamic , localized validation
+        /// </summary>
+        /// <param name="tr"></param>
+        /// <returns></returns>
+        public LexedToken? MoveNext(AllowedTransition tr)
         {
             if(CurrentIndex+1 == Tokens.Count)
             {
@@ -42,7 +48,12 @@ namespace ChronEx.Parser
             {
                 CurrentIndex++;
                 var curTok = Tokens[CurrentIndex];
-                var TransitionRecord = ParseStates.StateTransitions[State];
+
+                var TransitionRecord = tr;
+                if (tr == null)
+                {
+                  TransitionRecord=  ParseStates.StateTransitions[State];
+                }
                 if(!TransitionRecord.ContainsKey(curTok.TokenType))
                 {
                     throw new ParserStateException(State, curTok, TransitionRecord);
@@ -52,6 +63,11 @@ namespace ChronEx.Parser
             }
         }
 
+        public LexedToken? MoveNext()
+        {
+            return MoveNext(null);
+
+        }
         public LexedToken? Peek(int aheadCount)
         {
             if (CurrentIndex +aheadCount > Tokens.Count

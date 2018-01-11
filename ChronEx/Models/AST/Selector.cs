@@ -2,6 +2,7 @@
 using ChronEx.Processor;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -44,6 +45,7 @@ namespace ChronEx.Models.AST
         }
     }
 
+    [DebuggerDisplayAttribute("SpecifiedEventNameSelector: EventName = {EventName}, IsDotWildcard = {IsDotWildcard}")]
     public class SpecifiedEventNameSelector:Selector
     {
         public string EventName { get; set; }
@@ -58,9 +60,17 @@ namespace ChronEx.Models.AST
                 IsDotWildcard = true;
             }
         }
-
-        internal override IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker)
+        public override string Describe()
         {
+            return $"SpecifiedEventNameSelector: EventName = {EventName}, IsDotWildcard = {IsDotWildcard}";
+        }
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        {
+            //nulls are always no matches
+            if(chronevent == null)
+            {
+                return MatchResult.None;
+            }
             if(IsDotWildcard)
             {
                 return IsMatchResult.IsMatch;
@@ -72,21 +82,29 @@ namespace ChronEx.Models.AST
         internal override bool IsPotentialMatch(IChronologicalEvent chronevent)
         {
             //will always be the same as full match
-            return IsMatch(chronevent, null) != Processor.IsMatchResult.IsNotMatch;
+            return IsMatch(chronevent, null, null) != Processor.IsMatchResult.IsNotMatch;
         }
     }
 
   
-
+    [DebuggerDisplayAttribute("RegexSelector: Regex = {rgx}")]
     public class RegexSelector : Selector
     {
 
         public string MatchPattern { get; set; }
-
-        Regex rgx = null;
-        internal override IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker)
+        public override string Describe()
         {
-            if(IsRegexMatch(chronevent.EventName))
+            return $"RegexSelector: Regex = {rgx}";
+        }
+        Regex rgx = null;
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        {
+            if (chronevent == null)
+            {
+                return MatchResult.None;
+               
+            }
+            if (IsRegexMatch(chronevent.EventName))
             {
                 return Processor.IsMatchResult.IsMatch;
             }
@@ -100,6 +118,7 @@ namespace ChronEx.Models.AST
 
         bool IsRegexMatch(string Text)
         {
+
             if(rgx == null)
             {
                 rgx = new Regex(MatchPattern);

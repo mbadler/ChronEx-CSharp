@@ -10,9 +10,12 @@ namespace ChronEx.Models.AST
     {
         public override int ZOrder => 0;
 
-        
+        public override string Describe()
+        {
+            return "Syntax Tree";
+        }
 
-        internal override IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker)
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker,List<IChronologicalEvent> CapturedList)
         {
             throw new NotImplementedException();
         }

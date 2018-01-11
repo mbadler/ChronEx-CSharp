@@ -199,5 +199,21 @@ def");
             });
 
         }
+
+        [TestMethod]
+        public void Lex_NumQuant_BracesNumbersAndCommaLexCorrectly()
+        {
+            var n = new Lexer("abc{111,22}");
+            var res = n.returnlist;
+            Assert.AreEqual(8, res.Count);
+            res[1].AssertTokenIs(LexedTokenType.TEXT,"abc");
+            res[2].AssertTokenTypeIs(LexedTokenType.OPENCURLY);
+            res[3].AssertTokenIs(LexedTokenType.NUMBER, "111");
+            res[4].AssertTokenTypeIs(LexedTokenType.COMMA);
+            res[5].AssertTokenIs(LexedTokenType.NUMBER, "22");
+            res[6].AssertTokenTypeIs(LexedTokenType.CLOSECURLY);
+            
+
+        }
     }
 }

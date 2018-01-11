@@ -14,7 +14,7 @@ namespace ChronEx.Models.AST
         /// </summary>
         /// <param name="chronevent"></param>
         /// <returns></returns>
-        internal abstract IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker);
+        internal abstract MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList);
 
         /// <summary>
         /// does a quick top level test to determine match to decide wether to implement
@@ -49,6 +49,23 @@ namespace ChronEx.Models.AST
             }
         }
 
+        internal virtual MatchResult BeginProcessMatch(Tracker tracker,  IEnumerator<IChronologicalEvent> eventenum, List<IChronologicalEvent> CapturedList)
+        {
+            tracker.DebugStart(this,eventenum.Current);
+            //for almost all selectors this is going to be a driect call to is match 
+            var res = IsMatch(eventenum.Current, tracker, CapturedList);
+            if(res.Is_Capture() & CapturedList != null)
+            {
+                CapturedList.Add(eventenum.Current);
+            }
+            
+            if (tracker.DebugEnabled)
+            {
+                tracker.SaveDBGResult(this, res);
+            }
+            return res;
+        }
+
         /// <summary>
         /// Specifes the order for this element to be higher in the AST parent 
         /// this is usefull for elements that don't implement thrier own ReturnParseTreeFromExistingElement
@@ -56,7 +73,9 @@ namespace ChronEx.Models.AST
         public abstract int ZOrder { get;  }
 
         public abstract void InitializeFromParseStream(ParseProcessState state);
-       
+
+        public abstract string Describe();
+
     }
 
    

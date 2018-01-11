@@ -10,6 +10,11 @@ namespace ChronEx.Models.AST
     {
         public override int ZOrder => 100;
 
+        public override string Describe()
+        {
+            return "Negation";
+        }
+
         public override void InitializeFromParseStream(ParseProcessState state)
         {
             //nothing really to do here , negation is negation
@@ -17,27 +22,26 @@ namespace ChronEx.Models.AST
 
        
 
-        internal override IsMatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker)
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
         {
-            switch (ContainedElement.IsMatch(chronevent, Tracker))
+            //can't neagte a null - if null event then return no match
+            if(chronevent == null)
             {
-                case Processor.IsMatchResult.IsMatch:
-                    {
-                        return Processor.IsMatchResult.IsNotMatch;
-                         
-                    }
-                case Processor.IsMatchResult.IsNotMatch:
-                    {
-                        return Processor.IsMatchResult.IsMatch;
-                    }
-
-                case Processor.IsMatchResult.Continue:
-                    {
-                        return Processor.IsMatchResult.Continue;
-                    }
-                default:
-                    return Processor.IsMatchResult.Continue;
+               
+                return IsMatchResult.IsNotMatch;
             }
+            var a = ContainedElement.IsMatch(chronevent, Tracker, CapturedList);
+            if (a.Is_Match())
+                {
+                a= IsMatchResult.IsNotMatch;
+            }
+            else
+            {
+                a= IsMatchResult.IsMatch;
+            }
+           
+            return a;
+
         }
 
         
