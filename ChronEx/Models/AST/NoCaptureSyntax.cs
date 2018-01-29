@@ -33,7 +33,7 @@ namespace ChronEx.Models.AST
         }
 
 
-        internal override MatchResult BeginProcessMatch(Tracker tracker, IEnumerator<IChronologicalEvent> eventenum, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult BeginProcessMatch(Tracker tracker, EventStream eventenum, List<IChronologicalEvent> CapturedList)
         {
             tracker.DebugStart(this);
             //we don't want to capture so send in a null

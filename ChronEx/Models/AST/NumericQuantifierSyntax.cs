@@ -113,60 +113,140 @@ namespace ChronEx.Models.AST
             }
         }
 
-        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult BeginProcessMatch(Tracker tracker, EventStream eventenum, List<IChronologicalEvent> CapturedList)
         {
-            //first lets check the statebag to see if we are in there yet
-            var sbag = Tracker.GetMyStateBag<int?>(this);
-            if (!sbag.HasValue)
+            if (eventenum.Current == null)
             {
-                sbag = new Nullable<int>(0);
-                Tracker.SetMyStateBag(this, sbag);
+                return MatchResult.None;
             }
-
-            //Pass the event along to the contained element and get its result
-            var subRes = ContainedElement.IsMatch(chronevent, Tracker, CapturedList);
-            MatchResult tres = IsMatchResult.IsNotMatch;
-            
-            //if the chiled element did not match , then check if we reachied the min
-            if(subRes==IsMatchResult.IsNotMatch)
+                MatchResult tres = MatchResult.None;
+            var sbag = GetNumericTracker(tracker);
+            if (!sbag.MatchCount.HasValue)
             {
-                if(sbag.Value >= MinOccours)
+                sbag.MatchCount = new Nullable<int>(0);
+                tracker.SetMyStateBag(this, sbag);
+            }
+            var specEventStream = eventenum;//eventenum.CreateSpeculator();
+            do
+            {
+                MatchResult subRes = MatchResult.None;
+                
+                subRes = ContainedElement.BeginProcessMatch(tracker, eventenum, sbag.CaptureList);
+                if (!subRes.Is_Match())
                 {
-                    tres = MatchResult.Match | MatchResult.Forward;
+                    //if we matched our minimun we can make a final decisison if it did not match
+                    if (sbag.MatchCount.Value >= MinOccours)
+                    {
+                        tres = MatchResult.Match | MatchResult.Forward;
+                    }
+                    else//if we have not yet matched our minimun then we just need to continue
+                    {
+                        tres = MatchResult.Continue | MatchResult.Capture;
+                    }
+
+
+                }
+
+                //if we did match
+                if (subRes.Is_Match())
+                {
+                    //if we reached the max then return a match
+                    if (sbag.MatchCount.Value + 1 == MaxOccours)
+                    {
+                        tres = IsMatchResult.IsMatch;
+                    }
+                    else
+                    {
+                        //if we matched at least min then mark as match and contineu
+                        if (sbag.MatchCount.Value +1 >= MinOccours)
+                        {
+                            tres = MatchResult.Match | MatchResult.Continue | MatchResult.Capture;
+                        }
+                        else
+                        {
+                            //just continue matching
+                            tres = MatchResult.Continue | MatchResult.Capture;
+                        }
+                    }
+
+                }
+
+                //if its the end (either a match or not) , then remove our bag state
+                if (!tres.Is_Continue())
+                {
+                    tracker.RemoveMyStateBag(this);
                 }
                 else
                 {
-                    tres = IsMatchResult.IsNotMatch;
+                    //if its a continue then increment the bagstate
+                    sbag.MatchCount++;
+                    tracker.SetMyStateBag(this, sbag);
+                }
+
+                //if this is a match without a continue then grab the commmit the speculator
+                //and add the spculative captures to the tracker captures
+                if (tres.Is_Match() && !tres.Is_Continue())
+                {
+                    //specEventStream.EndApplyAll();
+                    if (CapturedList != null)
+                    {
+                        CapturedList.AddRange(sbag.CaptureList);
+                    }
+                    return tres;
+                }
+
+                //if this is not a match and not a continue then rollback the speculator and return the result
+                if (!tres.Is_Match() && !tres.Is_Continue())
+                {
+                    //specEventStream.EndDiscardAll();
+                    return tres;
+                }
+                //its a continue so allow the loop to continue
+
+            }
+            while (
+            specEventStream.MoveNext()); 
+            //if we are here it means that we ran out of events so we got to deal with that
+           if (tres.Is_Match())
+            {
+                if (CapturedList != null)
+                {
+                    CapturedList.AddRange(sbag.CaptureList);
                 }
             }
-
-            //if we did match
-            if(subRes==IsMatchResult.IsMatch)
+            //remove the continue if its there
+            if (tres.Is_Continue())
             {
-                //if we reached the max then return a match
-                if(sbag.Value +1 == MaxOccours)
-                {
-                    tres = MatchResult.Match;
-                }else
-                //if we are still under the max then continue matching 
-                tres = MatchResult.Continue;
+                var mask = ~MatchResult.Continue;
+                tres = tres & mask;
             }
+            return tres;
+        }
 
-            //if its the end (either a match or not) , then remove our bag state
-            if (tres == IsMatchResult.IsNotMatch || tres.HasFlag(MatchResult.Forward) || tres.HasFlag(MatchResult.Match))
+        //internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        //{
+            
+
+        //    //Pass the event along to the contained element and get its result
+        //    var subRes = ContainedElement.IsMatch(chronevent, Tracker, sbag.CaptureList);
+        //    MatchResult tres = IsMatchResult.IsNotMatch;
+
+        //    //if the chiled element did not match , then check if we reachied the min
+            
+
+        //}
+
+        private NumericQuanState GetNumericTracker(Tracker Tracker)
+        {
+            //first lets check the statebag to see if we are in there yet
+            if (Tracker.StateBag.ContainsKey(this))
             {
-                Tracker.RemoveMyStateBag(this);
+                return (NumericQuanState)Tracker.StateBag[this];
             }
             else
             {
-                //if its a continue then increment the bagstate
-                sbag = sbag.Value + 1;
-                Tracker.SetMyStateBag(this, sbag);
+                return new NumericQuanState();
             }
-
-            //return to the tracker the result
-            return tres;
-
         }
 
         internal override bool IsPotentialMatch(IChronologicalEvent chronevent)
@@ -174,5 +254,16 @@ namespace ChronEx.Models.AST
             //too complicated to try to predict just return true
             return true;
         }
+
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class NumericQuanState
+    {
+        public int? MatchCount { get; set; }
+        public List<IChronologicalEvent> CaptureList { get; set; } = new List<IChronologicalEvent>();
     }
 }

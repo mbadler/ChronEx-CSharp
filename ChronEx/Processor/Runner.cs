@@ -84,7 +84,7 @@ namespace ChronEx.Processor
             var firstElem = getlemes.First();
             List<Tracker> FoundTrackers = new List<Tracker>();
             Tracker CurrentTracker = null;
-            var eventenum = EventList.GetEnumerator();
+            var eventenum = new EventStream(EventList);
             eventenum.MoveNext();
             while (eventenum.Current!=null)
             {
@@ -104,6 +104,10 @@ namespace ChronEx.Processor
                         continue;
                     }
                 }
+                //We expect a process to move at least one event
+                //to ensure we don't get stuck in a forwarding loop on a wildcard compare 
+                //so save the current loop item index and comapare afterwars
+                var currentEventIndex = eventenum.ConcreatedIndex;
                 var res = CurrentTracker.ProcessEvents(eventenum);
                 if (res.Is_Match())
                 {
@@ -119,6 +123,10 @@ namespace ChronEx.Processor
                     debugTrackers.Add(CurrentTracker);
                 }
                 CurrentTracker = null;
+                if(eventenum.ConcreatedIndex == currentEventIndex)
+                {
+                    break;
+                }
             }
 
             var lex = new ChronExMatches();

@@ -13,7 +13,7 @@ namespace ChronEx.Tests
     {
         
         [TestMethod]
-        public void Quant_Num_FullASTCreated()
+        public void Quant_Num_AST_FullCreated()
         {
             var events = GetQuanTestSet();
             var script = "abc{1,2}";
@@ -26,7 +26,7 @@ namespace ChronEx.Tests
         }
 
         [TestMethod]
-        public void Quant_Num_OneNumSameMaxAndMin_AST()
+        public void Quant_Num_AST_OneNumSameMaxAndMin()
         {
             var events = GetQuanTestSet();
             var script = "a{3}"; 
@@ -40,7 +40,7 @@ namespace ChronEx.Tests
         }
 
         [TestMethod]
-        public void Quant_Num_MinOnly_AST()
+        public void Quant_Num_AST_MinOnly()
         {
             var events = GetQuanTestSet();
             var script = "abc{3,}";
@@ -53,7 +53,7 @@ namespace ChronEx.Tests
         }
 
         [TestMethod]
-        public void Quant_Num_MaxOnly_AST()
+        public void Quant_Num_AST_MaxOnly()
         {
             var events = GetQuanTestSet();
             var script = "abc{,5}";
@@ -65,59 +65,109 @@ namespace ChronEx.Tests
             Assert.AreEqual(5, a.MaxOccours);
         }
 
-
         [TestMethod]
-        public void Quant_Num_OneNumSameMaxAndMin_Match()
-        {
-            var events = GetQuanTestSet();
-            var script = "a{4}";
-            var mtchs = ChronEx.Matches(script, events);
-            mtchs.AssertMatchesAreEqual("a,a,a,a");
-
-        }
-
-        [TestMethod]
-        public void Quant_Num_MinOnly_Match()
-        {
-            var events = GetQuanTestSet();
-            var script = "abc{3,}";
-            var g = new ChronExParser();
-            var tree = g.ParsePattern(script);
-            Assert.IsInstanceOfType(tree.Statements[0], typeof(NumericQuantifierSyntax));
-            var a = (NumericQuantifierSyntax)tree.Statements[0];
-            Assert.AreEqual(3, a.MinOccours);
-            Assert.AreEqual(int.MaxValue, a.MaxOccours);
-        }
-
-        [TestMethod]
-        public void Quant_Num_MaxOnly_Match()
-        {
-            var events = GetQuanTestSet();
-            var script =
-@"a{,2}
--!a"; //match anything up to 2 , there is a scenerio of 4 that should match twice
-
-            var mtchs = ChronEx.Matches(script, events);
-            mtchs.AssertMatchesAreEqual(
-@"a,a
-a,a
-a,a
-a
-a,a");
-        }
-
-        [TestMethod]
-        public void Quant_Num_Min_simple()
+        public void Quant_Num_MinExact_Single()
         {
             var script =
-@"b{2,}";
-
+@"b{3,}";
             var events = TestUtils.ChronListFromString("b b b");
             var matches = ChronEx.Matches(script, events);
-            matches.AssertMatchesAreEqual("b,b");
+            matches.AssertMatchesAreEqual(
+@"b,b,b");
 
-           
         }
+
+        [TestMethod]
+        public void Quant_Num_MinAndMax_Single()
+        {
+            var script =
+@"b{3,4}";
+            var events = TestUtils.ChronListFromString("b b b b b");
+            var matches = ChronEx.Matches(script, events);
+            matches.AssertMatchesAreEqual(
+@"b,b,b,b");
+
+        }
+
+        [TestMethod]
+        public void Quant_Num_Max_Single()
+        {
+            var script =
+@"b{,4}";
+            var events = TestUtils.ChronListFromString("b b b b");
+            var matches = ChronEx.Matches(script, events);
+            matches.AssertMatchesAreEqual(
+@"b,b,b,b");
+
+        }
+        [TestMethod]
+        public void Quant_Num_MinAndMax_SameLetterContinues()
+        {
+            var script =
+@"b{2,4}";
+            var events = TestUtils.ChronListFromString("b b b b b b");
+            var matches = ChronEx.Matches(script, events);
+            matches.AssertMatchesAreEqual(
+@"b,b,b,b
+b,b");
+
+        }
+
+        [TestMethod]
+        public void Quant_Num_Minofzero_PassesOn()
+        {
+            var script =
+@"b{0,4}
+c";
+            var events = TestUtils.ChronListFromString("c d");
+            var matches = ChronEx.Matches(script, events);
+            matches.AssertMatchesAreEqual(
+@"c");
+
+        }
+
+        [TestMethod]
+        public void Quant_Num_SpecifiedOne()
+        {
+            var script =
+@"b{1}";
+            var events = TestUtils.ChronListFromString("b b b b");
+            var matches = ChronEx.Matches(script, events);
+            matches.AssertMatchesAreEqual(
+@"b
+b
+b
+b");
+        }
+            [TestMethod]
+        public void Quant_Num_OpenendedAtEndOfOther()
+        {
+            var script =
+@"c{1,3}
+b{1,}";
+            var events = TestUtils.ChronListFromString("c c c b b b b");
+            var matches = ChronEx.Matches(script, events);
+            matches.AssertMatchesAreEqual(
+@"c,c,c,b,b,b,b");
+
+        }
+        [TestMethod]
+        public void Quant_Num_OpenendedRepeat()
+        {
+            var script =
+@"c{1,3}
+b{1,}";
+            var events = TestUtils.ChronListFromString("c c c b b b b c c b");
+            var matches = ChronEx.Matches(script, events);
+            matches.AssertMatchesAreEqual(
+@"c,c,c,b,b,b,b
+c,c,b");
+
+        }
+
+
+
+
 
         public IEnumerable<ChronologicalEvent> GetQuanTestSet()
         {

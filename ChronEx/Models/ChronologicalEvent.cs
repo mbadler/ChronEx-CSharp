@@ -15,5 +15,14 @@ namespace ChronEx.Models
         {
             return $"EventName = {EventName} , DateTime = {EventDateTime}";
         }
+
+        public override string ToString()
+        {
+            return Describe();
+        }
+        
+
+    
     }
 }
+

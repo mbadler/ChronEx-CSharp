@@ -48,7 +48,7 @@ namespace ChronEx.Processor
             _evntEnum.MoveNext();
         }
 
-        internal MatchResult ProcessEvents(IEnumerator<IChronologicalEvent> eventenum)
+        internal MatchResult ProcessEvents(EventStream eventenum)
         {
             List<IChronologicalEvent> CapturedList = new List<IChronologicalEvent>();
             var elementenum = tree.Statements.GetEnumerator();

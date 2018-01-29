@@ -49,7 +49,7 @@ namespace ChronEx.Models.AST
             }
         }
 
-        internal virtual MatchResult BeginProcessMatch(Tracker tracker,  IEnumerator<IChronologicalEvent> eventenum, List<IChronologicalEvent> CapturedList)
+        internal virtual MatchResult BeginProcessMatch(Tracker tracker,  EventStream eventenum, List<IChronologicalEvent> CapturedList)
         {
             tracker.DebugStart(this,eventenum.Current);
             //for almost all selectors this is going to be a driect call to is match 

@@ -8,7 +8,7 @@ namespace ChronEx.Models.AST
 {
     public abstract class QuantifierElementBase:ContainerElement
     {
-        internal override MatchResult BeginProcessMatch(Tracker tracker, IEnumerator<IChronologicalEvent> eventenum, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult BeginProcessMatch(Tracker tracker, EventStream eventenum, List<IChronologicalEvent> CapturedList)
         {
             tracker.DebugStart(this,eventenum.Current);
             // we need to override this becasue the base class does event capturing

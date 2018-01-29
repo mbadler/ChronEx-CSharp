@@ -30,7 +30,7 @@ namespace ChronEx.Models.AST
         }
 
         //basic and container
-        internal override MatchResult BeginProcessMatch(Tracker tracker, IEnumerator<IChronologicalEvent> eventenum, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult BeginProcessMatch(Tracker tracker, EventStream eventenum, List<IChronologicalEvent> CapturedList)
         {
             //container elements run thru all of the statements and apply the matches
             //when we enter here the eventenum should already be pointng at the correct event
