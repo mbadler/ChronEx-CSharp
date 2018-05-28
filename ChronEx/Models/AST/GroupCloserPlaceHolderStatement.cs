@@ -6,13 +6,19 @@ using ChronEx.Processor;
 
 namespace ChronEx.Models.AST
 {
-    public class ScriptSyntaxTreeElement : StatementContainerElement
+    public class GroupCloserPlaceHolderElement : ElementBase
     {
-        public override int ZOrder => 0;
+        public override int ZOrder => throw new NotImplementedException();
 
         public override string Describe()
         {
-            return "Syntax Tree";
+            throw new NotImplementedException();
+        }
+
+        public override void InitializeFromParseStream(ParseProcessState state)
+        {
+            //eat up the transition token
+            //state.MoveNext();
         }
 
         internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, CaptureList CapturedList)

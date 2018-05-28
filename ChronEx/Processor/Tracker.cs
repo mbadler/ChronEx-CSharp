@@ -50,7 +50,7 @@ namespace ChronEx.Processor
 
         internal MatchResult ProcessEvents(EventStream eventenum)
         {
-            List<IChronologicalEvent> CapturedList = new List<IChronologicalEvent>();
+            CaptureList CapturedList = new CaptureList();
             var elementenum = tree.Statements.GetEnumerator();
             //move to the first enum
             elementenum.MoveNext();
@@ -59,9 +59,10 @@ namespace ChronEx.Processor
             MatchResult matchres = IsMatchResult.IsNotMatch;
            
             matchres = tree.BeginProcessMatch(this,  eventenum, CapturedList);
-            if(matchres.Is_Match() && CapturedList.Count>0)
+            var CapList = CapturedList.InternalList();
+            if(matchres.Is_Match() && CapList.Count>0)
             {
-                this.StoredList = CapturedList;
+                this.StoredList = CapList;
             }
             return matchres;
             //var res = _evntEnum.Current.IsMatch(even,this);
@@ -106,7 +107,8 @@ namespace ChronEx.Processor
         Match = 1,
         Capture = 2,
         Forward = 4,
-        Continue = 8
+        Continue = 8,
+        Ended = 16
     }
     public static class IsMatchResult
     {
@@ -128,6 +130,11 @@ namespace ChronEx.Processor
         public static bool Is_Continue(this MatchResult mr)
         {
             return mr.HasFlag(MatchResult.Continue);
+        }
+
+        public static bool Is_Ended(this MatchResult mr)
+        {
+            return mr.HasFlag(MatchResult.Ended);
         }
     }
 }

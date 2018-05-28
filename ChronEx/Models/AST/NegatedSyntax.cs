@@ -20,31 +20,37 @@ namespace ChronEx.Models.AST
             //nothing really to do here , negation is negation
         }
 
-       
 
-        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult BeginProcessMatch(Tracker tracker, IEventStream eventenum, CaptureList CapturedList)
         {
+
             //can't neagte a null - if null event then return no match
-            if(chronevent == null)
+            if (eventenum.Current == null)
             {
-               
+
                 return IsMatchResult.IsNotMatch;
             }
-            var a = ContainedElement.IsMatch(chronevent, Tracker, CapturedList);
+             
+            var a = ContainedElement.BeginProcessMatch(tracker, eventenum, null);
             if (a.Is_Match())
-                {
-                a= IsMatchResult.IsNotMatch;
+            {
+                a = IsMatchResult.IsNotMatch;
+                
+                
             }
             else
-            {
-                a= IsMatchResult.IsMatch;
+            {CapturedList.Add(eventenum.Current);
+                a = IsMatchResult.IsMatch;
+                
             }
-           
-            return a;
 
+            return a;
         }
 
-        
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, CaptureList CapturedList)
+        {
+            throw new NotImplementedException();
+        }
 
         internal override bool IsPotentialMatch(IChronologicalEvent chronevent)
         {

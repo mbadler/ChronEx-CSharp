@@ -52,7 +52,7 @@ namespace ChronEx.Models.AST
 
         public override void InitializeFromParseStream(ParseProcessState state)
         {
-            while (state.MoveNext(MyTransitions[state.State]) != null)
+            while (state.MoveNext(MyTransitions[state.State],false) != null)
             {
                 var curr = state.Current().Value;
                 switch (state.State)
@@ -113,14 +113,14 @@ namespace ChronEx.Models.AST
             }
         }
 
-        internal override MatchResult BeginProcessMatch(Tracker tracker, EventStream eventenum, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult SubBeginProcessMatch(Tracker tracker, IEventStream eventenum, CaptureList CapturedList)
         {
             if (eventenum.Current == null)
             {
                 return MatchResult.None;
             }
                 MatchResult tres = MatchResult.None;
-            var sbag = GetNumericTracker(tracker);
+            var sbag = GetQuantifierState(tracker);
             if (!sbag.MatchCount.HasValue)
             {
                 sbag.MatchCount = new Nullable<int>(0);
@@ -142,10 +142,13 @@ namespace ChronEx.Models.AST
                     else//if we have not yet matched our minimun then we just need to continue
                     {
                         tres = MatchResult.Continue | MatchResult.Capture;
+
                     }
 
 
+
                 }
+                
 
                 //if we did match
                 if (subRes.Is_Match())
@@ -165,7 +168,15 @@ namespace ChronEx.Models.AST
                         else
                         {
                             //just continue matching
+                            //if the subres has a forward , then don't capture , just relay the forward
+                            if(subRes.Is_Forward())
+                            {
+                                tres = MatchResult.Continue | MatchResult.Forward;
+                            }
+                            else
+                            {
                             tres = MatchResult.Continue | MatchResult.Capture;
+                            }
                         }
                     }
 
@@ -183,6 +194,11 @@ namespace ChronEx.Models.AST
                     tracker.SetMyStateBag(this, sbag);
                 }
 
+                if (subRes.Is_Forward())
+                {
+                    tres = tres | MatchResult.Forward;
+                }
+
                 //if this is a match without a continue then grab the commmit the speculator
                 //and add the spculative captures to the tracker captures
                 if (tres.Is_Match() && !tres.Is_Continue())
@@ -190,7 +206,7 @@ namespace ChronEx.Models.AST
                     //specEventStream.EndApplyAll();
                     if (CapturedList != null)
                     {
-                        CapturedList.AddRange(sbag.CaptureList);
+                        CapturedList.AddRange(sbag.CaptureList.Items);
                     }
                     return tres;
                 }
@@ -205,13 +221,13 @@ namespace ChronEx.Models.AST
 
             }
             while (
-            specEventStream.MoveNext()); 
+            specEventStream.MoveNextIfNotForward(tres)); 
             //if we are here it means that we ran out of events so we got to deal with that
            if (tres.Is_Match())
             {
                 if (CapturedList != null)
                 {
-                    CapturedList.AddRange(sbag.CaptureList);
+                    CapturedList.AddRange(sbag.CaptureList.Items);
                 }
             }
             //remove the continue if its there
@@ -236,18 +252,7 @@ namespace ChronEx.Models.AST
 
         //}
 
-        private NumericQuanState GetNumericTracker(Tracker Tracker)
-        {
-            //first lets check the statebag to see if we are in there yet
-            if (Tracker.StateBag.ContainsKey(this))
-            {
-                return (NumericQuanState)Tracker.StateBag[this];
-            }
-            else
-            {
-                return new NumericQuanState();
-            }
-        }
+       
 
         internal override bool IsPotentialMatch(IChronologicalEvent chronevent)
         {
@@ -255,15 +260,15 @@ namespace ChronEx.Models.AST
             return true;
         }
 
-        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, CaptureList CapturedList)
         {
             throw new NotImplementedException();
         }
     }
 
-    public class NumericQuanState
+    public class QuantifierState
     {
         public int? MatchCount { get; set; }
-        public List<IChronologicalEvent> CaptureList { get; set; } = new List<IChronologicalEvent>();
+        public CaptureList CaptureList { get; set; } = new CaptureList();
     }
 }

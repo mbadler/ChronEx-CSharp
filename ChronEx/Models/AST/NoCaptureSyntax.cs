@@ -24,7 +24,7 @@ namespace ChronEx.Models.AST
             return "No Capture";
         }
 
-        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, CaptureList CapturedList)
         {
             var a = ContainedElement.IsMatch(chronevent, Tracker, CapturedList);
             
@@ -33,7 +33,7 @@ namespace ChronEx.Models.AST
         }
 
 
-        internal override MatchResult BeginProcessMatch(Tracker tracker, EventStream eventenum, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult BeginProcessMatch(Tracker tracker, IEventStream eventenum, CaptureList CapturedList)
         {
             tracker.DebugStart(this);
             //we don't want to capture so send in a null

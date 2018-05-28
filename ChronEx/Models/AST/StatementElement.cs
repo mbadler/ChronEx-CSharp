@@ -25,15 +25,22 @@ namespace ChronEx.Models.AST
         public override void InitializeFromParseStream(ParseProcessState state)
         {
          
-            while (state.MoveNext() != null)
+            while (state.MoveNext(true) != null)
             {
                 //move a token - this wll cause the next item in the steream to be created
                 // var nextToken = state.MoveNext();
                 var newElement = state.CreateCurrent();
+                
                 if (newElement != null)
                 {
                     //a element was created - at this level it would be a statement
                     unorderdelements.Add(newElement);
+                }
+                //if iis a close group token (such as ) or ] ) then exit here to slide back to the parent
+                if (newElement is GroupCloserPlaceHolderElement)
+                {
+                    ContainedElement = newElement;
+                    return;
                 }
                 //peek next ifits a eol or a eof then orginize the statement and return
                 var nxt = state.Peek(1);
@@ -65,7 +72,7 @@ namespace ChronEx.Models.AST
             }
         }
 
-        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, CaptureList CapturedList)
         {
             return ContainedElement.IsMatch(chronevent, Tracker, CapturedList);
         }

@@ -16,7 +16,20 @@ namespace ChronEx.Parser
 
         public ElementBase CreateCurrent()
         {
-            var FactoryName = CurrentTransition[Current().Value.TokenType].Factory;
+            string FactoryName = "";
+            try
+            {
+FactoryName = CurrentTransition[Current().Value.TokenType].Factory;
+            }
+            catch (Exception ex)
+            {
+                var d = ex;
+            }
+            //if this is a terminating state (such as a group)
+            if(FactoryName=="")
+            {
+                return null;
+            }
             var con = ParseStates.Constructors[FactoryName];
             State = con.Item1;
             //some tokens don't need any kind of constructig exit if this is them
@@ -38,36 +51,54 @@ namespace ChronEx.Parser
         /// </summary>
         /// <param name="tr"></param>
         /// <returns></returns>
-        public LexedToken? MoveNext(AllowedTransition tr)
+        public LexedToken? MoveNext(AllowedTransition tr, bool SkipWhitespace)
         {
-            if(CurrentIndex+1 == Tokens.Count)
+            if (CurrentIndex + 1 == Tokens.Count)
             {
                 return null;
             }
-            else
-            {
-                CurrentIndex++;
-                var curTok = Tokens[CurrentIndex];
 
-                var TransitionRecord = tr;
-                if (tr == null)
+            CurrentIndex++;
+            var curTok = Tokens[CurrentIndex];
+
+            if (SkipWhitespace) 
+            {
+                while (curTok.TokenType == LexedTokenType.WHITESPACE)
                 {
-                  TransitionRecord=  ParseStates.StateTransitions[State];
+                    if (CurrentIndex + 1 == Tokens.Count)
+                    {
+                        return null;
+                    }
+                    CurrentIndex++;
+                    curTok = Tokens[CurrentIndex];
                 }
-                if(!TransitionRecord.ContainsKey(curTok.TokenType))
-                {
-                    throw new ParserStateException(State, curTok, TransitionRecord);
-                }
-                CurrentTransition = TransitionRecord;
-                return curTok;
+                
             }
+
+            var TransitionRecord = tr;
+            if (tr == null)
+            {
+                TransitionRecord = ParseStates.StateTransitions[State];
+            }
+            if (!TransitionRecord.ContainsKey(curTok.TokenType))
+            {
+                throw new ParserStateException(State, curTok, TransitionRecord);
+            }
+            CurrentTransition = TransitionRecord;
+            return curTok;
         }
+        
 
         public LexedToken? MoveNext()
         {
-            return MoveNext(null);
-
+            return MoveNext(null,false);
         }
+
+        public LexedToken? MoveNext(bool SkipWhitespace)
+        {
+            return MoveNext(null, SkipWhitespace);
+        }
+
         public LexedToken? Peek(int aheadCount)
         {
             if (CurrentIndex +aheadCount > Tokens.Count

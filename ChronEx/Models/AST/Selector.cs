@@ -64,7 +64,7 @@ namespace ChronEx.Models.AST
         {
             return $"SpecifiedEventNameSelector: EventName = {EventName}, IsDotWildcard = {IsDotWildcard}";
         }
-        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, CaptureList CapturedList)
         {
             //nulls are always no matches
             if(chronevent == null)
@@ -97,7 +97,7 @@ namespace ChronEx.Models.AST
             return $"RegexSelector: Regex = {rgx}";
         }
         Regex rgx = null;
-        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, CaptureList CapturedList)
         {
             if (chronevent == null)
             {

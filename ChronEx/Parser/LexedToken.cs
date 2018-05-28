@@ -20,7 +20,10 @@ namespace ChronEx.Parser
             {'+',LexedTokenType.PLUS },
             {'*',LexedTokenType.STAR },
             {'?',LexedTokenType.QUESTIONMARK},
-            {'-',LexedTokenType.DASH }
+            {'-',LexedTokenType.DASH },
+            {'(',LexedTokenType.OPENPAREN },
+            {')',LexedTokenType.CLOSEPAREN }
+
         };
 
         public LexedToken(LexedTokenType TokenType,string TokenText,int LineNumber,int Position)
@@ -66,6 +69,9 @@ namespace ChronEx.Parser
         PLUS,
         STAR,
         QUESTIONMARK,
-        DASH
+        DASH,
+        OPENPAREN,
+        CLOSEPAREN,
+        EXCLAMATIONOPENPAREN
     }
 }

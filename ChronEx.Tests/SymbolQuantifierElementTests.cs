@@ -273,7 +273,39 @@ b";
 
         }
 
+        [TestMethod]
+        public void Quant_Symbol_Star_MultipleNegations()
+        {
+            var events = TestUtils.ChronListFromString("O F O F O A B C D F O A B O");
 
+            var script =
+            @"O
+!F*
+F";
+            var matches = ChronEx.Matches(script, events);
+
+            matches.AssertMatchesAreEqual(
+@"O,F
+O,F
+O,A,B,C,D,F");
+
+        }
+
+        [TestMethod]
+        public void Quant_Symbol_Star_MultipleNegations_FindOutliers()
+        {
+            var events = TestUtils.ChronListFromString("O F O F O A B C D F O A B O");
+
+            var script =
+            @"O
+!/F|O/*
+O";
+            var matches = ChronEx.Matches(script, events);
+
+            matches.AssertMatchesAreEqual(
+@"O,A,B,O");
+
+        }
 
         public IEnumerable<ChronologicalEvent> GetQuanTestSet()
         {

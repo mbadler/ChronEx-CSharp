@@ -336,6 +336,25 @@ namespace ChronEx.Parser
                 return;
             }
 
+            if(Current == '!')
+            {
+                var peekChar = Peek();
+                if (peekChar.HasValue)
+                {
+                    if (peekChar.Value == '(')
+                    {
+                        Select();
+                        Select();
+                        CaptureToken(LexedTokenType.EXCLAMATIONOPENPAREN);
+                        return;
+                    }
+                    Select();
+                    CaptureToken(LexedTokenType.EXCLAMATION);
+                    return;
+                }
+                throwParserException("Invalid token '!'");
+                
+            }
             //if its a number
             if(Char.IsDigit(Current))
             {

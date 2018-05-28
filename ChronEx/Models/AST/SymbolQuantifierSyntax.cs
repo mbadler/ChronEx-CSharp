@@ -28,55 +28,69 @@ namespace ChronEx.Models.AST
         //    return this;
         //}
 
-        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult SubBeginProcessMatch(Tracker tracker, IEventStream eventenum, CaptureList CapturedList)
         {
             //first lets check the statebag to see if we are in there yet
-            var sbag = Tracker.GetMyStateBag<int?>(this);
-            if (!sbag.HasValue)
+            var sbag = GetQuantifierState(tracker);
+            if (!sbag.MatchCount.HasValue)
             {
-                sbag = new Nullable<int>(0);
-                Tracker.SetMyStateBag(this,sbag);
+                sbag.MatchCount = new Nullable<int>(0);
+                tracker.SetMyStateBag(this, sbag);
             }
 
             //Pass the event along to the contained element and get its result
-            var subRes = ContainedElement.IsMatch(chronevent, Tracker, CapturedList);
+            var subRes = ContainedElement.BeginProcessMatch(tracker,eventenum, sbag.CaptureList);
 
             MatchResult tres = IsMatchResult.IsNotMatch;
-            if(QuantifierSymbol=='+')
+            if (QuantifierSymbol == '+')
             {
-                tres = HandlePlus(sbag, subRes);
+                tres = HandlePlus(sbag.MatchCount, subRes);
             }
 
             if (QuantifierSymbol == '*')
             {
-                tres = HandleStar(sbag, subRes);
+                tres = HandleStar(sbag.MatchCount, subRes);
             }
 
             if (QuantifierSymbol == '?')
             {
-                tres = HandleQuestionMark(sbag, subRes);
+                tres = HandleQuestionMark(sbag.MatchCount, subRes);
             }
 
             //if its the end (either a match or not) , then remove our bag state
             if (!tres.Is_Continue())
             {
-                Tracker.RemoveMyStateBag(this);
+                if (tres.Is_Match() )
+                {
+                    //specEventStream.EndApplyAll();
+                    if (CapturedList != null)
+                    {
+                        CapturedList.AddRange(sbag.CaptureList.Items);
+                    }
+                    
+                }
+                tracker.RemoveMyStateBag(this);
             }
             else
             {
                 //if its a continue then increment the bagstate
-                sbag = sbag.Value+1;
-                Tracker.SetMyStateBag(this, sbag);
+                sbag.MatchCount = sbag.MatchCount.Value + 1;
+                tracker.SetMyStateBag(this, sbag);
             }
 
-            if(tres.Is_Capture() && CapturedList!=null)
-            {
-                CapturedList.Add(chronevent);
-            }
+            
+            
             //return to the tracker the result
-           
+            if(subRes.Is_Forward())
+            {
+                tres = tres | MatchResult.Forward;
+            }
             return tres;
+        }
+        internal override MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, CaptureList CapturedList)
+        {
 
+            throw new NotImplementedException();
         }
 
         private MatchResult HandleQuestionMark(int? sbag, MatchResult subRes)

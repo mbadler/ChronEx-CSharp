@@ -14,7 +14,7 @@ namespace ChronEx.Models.AST
         /// </summary>
         /// <param name="chronevent"></param>
         /// <returns></returns>
-        internal abstract MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, List<IChronologicalEvent> CapturedList);
+        internal abstract MatchResult IsMatch(IChronologicalEvent chronevent, Tracker Tracker, CaptureList CapturedList);
 
         /// <summary>
         /// does a quick top level test to determine match to decide wether to implement
@@ -49,16 +49,18 @@ namespace ChronEx.Models.AST
             }
         }
 
-        internal virtual MatchResult BeginProcessMatch(Tracker tracker,  EventStream eventenum, List<IChronologicalEvent> CapturedList)
+        
+
+        internal virtual MatchResult BeginProcessMatch(Tracker tracker, IEventStream eventenum, CaptureList CapturedList)
         {
-            tracker.DebugStart(this,eventenum.Current);
+            tracker.DebugStart(this, eventenum.Current);
             //for almost all selectors this is going to be a driect call to is match 
             var res = IsMatch(eventenum.Current, tracker, CapturedList);
-            if(res.Is_Capture() & CapturedList != null)
+            if (res.Is_Capture() & CapturedList != null)
             {
                 CapturedList.Add(eventenum.Current);
             }
-            
+
             if (tracker.DebugEnabled)
             {
                 tracker.SaveDBGResult(this, res);

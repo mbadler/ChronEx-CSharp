@@ -215,5 +215,27 @@ def");
             
 
         }
+
+        [TestMethod]
+        public void Lex_ExclamationAndOpenBrace()
+        {
+            var s =
+@"!(
+    !(
+)
+)"
+;
+           
+            var n = new Lexer(s);
+
+            var res = n.returnlist;
+           
+            Assert.AreEqual(LexedTokenType.EXCLAMATIONOPENPAREN, res[1].TokenType);
+
+
+            Assert.AreEqual(LexedTokenType.EXCLAMATIONOPENPAREN, res[7].TokenType);
+           
+
+        }
     }
 }

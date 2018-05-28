@@ -1,4 +1,5 @@
 ﻿using ChronEx.Models;
+using ChronExQuery.Properties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace ChronExQuery
         public MainWindow()
         {
             InitializeComponent();
+            inputTbox.Text = Properties.Resources.BoilerEvents;
         }
 
         List<ChronologicalEvent> ChronEvents = null;
@@ -75,17 +77,24 @@ namespace ChronExQuery
         {
             var evts = GetEvts();
             concatPattern();
+            try
+            { 
             var res = ChronEx.ChronEx.Matches(patternTB.Text, evts);
-            for (int i = 0; i < res.Count; i++)
-            {
-                resultTB.AppendText(string.Format("Result #{0}\n", i));
-                var resl = res[i];
-                foreach (var item in resl.CapturedEvents)
+
+                for (int i = 0; i < res.Count; i++)
                 {
-                    resultTB.AppendText("   " + item.EventName+"  :  "+item.EventDateTime.ToString()+"\n");
+                    resultTB.AppendText(string.Format("Result #{0}\n", i));
+                    var resl = res[i];
+                    foreach (var item in resl.CapturedEvents)
+                    {
+                        resultTB.AppendText("   " + item.EventName + "  :  " + item.EventDateTime.ToString() + "\n");
+                    }
                 }
             }
-            
+            catch(Exception Ex)
+            {
+                MessageBox.Show(Ex.Message);
+            }
             resultTB.ScrollToEnd();
         }
     }

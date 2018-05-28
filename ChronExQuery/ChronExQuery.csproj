@@ -98,5 +98,8 @@
       <Name>ChronEx</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include="Resources\BoilerEvents.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

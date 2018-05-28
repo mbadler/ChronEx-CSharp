@@ -20,17 +20,25 @@ namespace ChronEx.Models.AST
                     return;
                 }
                 var newElement = (StatementElement) state.CreateCurrent();
+                
                 if(newElement != null)
-                {
-                    //a element was created - at this level it would be a statement
-                    Statements.Add(newElement.ContainedElement);
+                { 
+                    //if this was a group closing token then don't add it and just return
+               
+                    if (newElement.ContainedElement is GroupCloserPlaceHolderElement)
+                    {
+                        return;
+                    }
+                    //else add it and continue
+                        //a element was created - at this level it would be a statement
+                        Statements.Add(newElement.ContainedElement);
                 }
                 
             }
         }
 
         //basic and container
-        internal override MatchResult BeginProcessMatch(Tracker tracker, EventStream eventenum, List<IChronologicalEvent> CapturedList)
+        internal override MatchResult BeginProcessMatch(Tracker tracker, IEventStream eventenum, CaptureList CapturedList)
         {
             //container elements run thru all of the statements and apply the matches
             //when we enter here the eventenum should already be pointng at the correct event
@@ -71,16 +79,16 @@ namespace ChronEx.Models.AST
                     return res;
                 }
                 //if the child element didn't ask to contine with its elf then move next element
-                if(!res.Is_Continue())
+                if (!res.Is_Continue())
                 {
                     myStatementsEnum.MoveNext();
                 }
-                
-                
 
-                
+
+
+
                 //if i already matched but there aren't any more statements in the events then just return a match
-                if(res.Is_Match() && eventenum.Current==null)
+                if (res.Is_Match() && eventenum.Current==null)
                 {
                     //return res;
                 
@@ -92,6 +100,10 @@ namespace ChronEx.Models.AST
                 tracker.SaveDBGResult(this, res);
             }
             //if we got here then everythign matched
+            if(eventenum.Current==null)
+            {
+                res = res | MatchResult.Ended;
+            }
             return res;
             
         }

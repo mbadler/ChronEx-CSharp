@@ -139,7 +139,19 @@ b
 b
 b");
         }
-            [TestMethod]
+
+                [TestMethod]
+        public void Quant_Num_OneMoreThenSpecified()
+        {
+            var script =
+@"b{5}";
+            var events = TestUtils.ChronListFromString("b b b b b b");
+            var matches = ChronEx.Matches(script, events);
+            matches.AssertMatchesAreEqual(
+@"b,b,b,b,b");
+
+        }
+        [TestMethod]
         public void Quant_Num_OpenendedAtEndOfOther()
         {
             var script =

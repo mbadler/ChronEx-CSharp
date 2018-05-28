@@ -12,6 +12,8 @@ namespace ChronEx.Processor
         void EndApplyAll();
         void EndDiscardAll();
         void CofirmUntilIndex(int index);
+        bool MoveNextIfNotForward(MatchResult tres);
+       
 
         
     }
@@ -30,6 +32,7 @@ namespace ChronEx.Processor
 
 
         bool HasActiveSpeculator = false;
+        private object forwardedElement;
 
         public EventStream(IEnumerable<IChronologicalEvent> Events)
         {
@@ -202,6 +205,25 @@ namespace ChronEx.Processor
         {
             ConcreteEventIndex = index;
         }
+
+        public bool MoveNextIfNotForward(MatchResult tres)
+        {
+           
+            if(tres.Is_Forward())
+            {
+                if(Current!= null)
+                {
+                    return true;
+                }
+                 
+                
+            }
+            
+            return MoveNext();
+            
+        }
+
+       
     }
 
     public class SpeculativeEventStream : IEventStream
@@ -351,6 +373,18 @@ namespace ChronEx.Processor
         {
             parentStream.CofirmUntilIndex(index);
         }
+
+       
+            public bool MoveNextIfNotForward(MatchResult tres)
+            {
+                if (tres.Is_Forward())
+                { return true; }
+                else
+                {
+                    return MoveNext();
+                }
+            }
+        
         #endregion
 
 

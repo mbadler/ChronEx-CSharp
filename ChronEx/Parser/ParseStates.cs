@@ -28,7 +28,10 @@ namespace ChronEx.Parser
             {"REGEXSELECTOR",Ntp(StatementState.Selector,()=>new RegexSelector()) },
             {"STATEMENT",Ntp(StatementState.BOS,()=>new StatementElement()) },
             {"NEWLINE",Ntp(StatementState.BOS,null )},
-            {"NUMERICQUANTIFIER",Ntp(StatementState.NumericQuantifierStart,()=>new NumericQuantifierSyntax()) }
+            {"NUMERICQUANTIFIER",Ntp(StatementState.NumericQuantifierStart,()=>new NumericQuantifierSyntax()) },
+            {"ANDGROUP",Ntp(StatementState.AndGroupStart,()=>new AndGroupElement()) },
+            {"GROUPCLOSER",Ntp(StatementState.GroupCloser,()=>new GroupCloserPlaceHolderElement()) },
+            {"NEGATEDGROUP",Ntp(StatementState.NegatedAndGroup,()=>throw new ParserException("Negated Groups are not allowed")) }
         };
         //in child parser
 
@@ -54,13 +57,17 @@ namespace ChronEx.Parser
             AddToRoute(tempTree, LexedTokenType.TEXT, new TransitionRecord("NAMESELECTOR"), statesLeadingtoSelectorTypes);
             AddToRoute(tempTree, LexedTokenType.DELIMITEDTEXT, new TransitionRecord("NAMESELECTOR"), statesLeadingtoSelectorTypes);
             AddToRoute(tempTree, LexedTokenType.REGEX, new TransitionRecord("REGEXSELECTOR"), statesLeadingtoSelectorTypes);
+            AddToRoute(tempTree, LexedTokenType.OPENPAREN, new TransitionRecord("ANDGROUP"), statesLeadingtoSelectorTypes);
+            
 
             //Add the states that can transition to either a EOL or a EOF
             var statesLeadingToEOFEOL = new StatementState[]
                 {
                     StatementState.Selector,
                     StatementState.SymbolQuantifier,
-                    StatementState.NumericQuantifierEnd
+                    StatementState.NumericQuantifierEnd,
+                    StatementState.AndGroupStart,
+                    StatementState.GroupCloser
 
                 };
             //newline should transition to a new statement
@@ -69,20 +76,28 @@ namespace ChronEx.Parser
 
             //who can lead to negate
             AddToRoute(tempTree, LexedTokenType.EXCLAMATION, new TransitionRecord("NEGATEDSYNTAX"), StatementState.BOS,StatementState.NoCapture);
+            AddToRoute(tempTree, LexedTokenType.EXCLAMATIONOPENPAREN, new TransitionRecord("NEGATEDGROUP"), StatementState.BOS, StatementState.NoCapture);
             //no capture can only really come from a BOS
             AddToRoute(tempTree, LexedTokenType.DASH, new TransitionRecord("NOCAPTURESYNTAX"), StatementState.BOS);
+
+            //A and group closing can only be the first item on the line
+            AddToRoute(tempTree, LexedTokenType.CLOSEPAREN, new TransitionRecord("GROUPCLOSER"), StatementState.BOS);
 
             //statements that can lead to Symbol quantifier - these are the selectors
             AddToRoute(tempTree, LexedTokenType.QUESTIONMARK, new TransitionRecord("SYMBOLQUANTIFIER"), StatementState.Selector);
             AddToRoute(tempTree, LexedTokenType.PLUS, new TransitionRecord("SYMBOLQUANTIFIER"), StatementState.Selector);
             AddToRoute(tempTree, LexedTokenType.STAR, new TransitionRecord("SYMBOLQUANTIFIER"), StatementState.Selector);
+            AddToRoute(tempTree, LexedTokenType.QUESTIONMARK, new TransitionRecord("SYMBOLQUANTIFIER"), StatementState.GroupCloser);
+            AddToRoute(tempTree, LexedTokenType.PLUS, new TransitionRecord("SYMBOLQUANTIFIER"), StatementState.GroupCloser);
+            AddToRoute(tempTree, LexedTokenType.STAR, new TransitionRecord("SYMBOLQUANTIFIER"), StatementState.GroupCloser);
 
             //numeric quantifier section
 
             AddToRoute(tempTree, LexedTokenType.OPENCURLY, new TransitionRecord("NUMERICQUANTIFIER"), StatementState.Selector);
-
+            AddToRoute(tempTree, LexedTokenType.OPENCURLY, new TransitionRecord("NUMERICQUANTIFIER"), StatementState.GroupCloser);
             return tempTree;
         }
+
         public static void AddToRoute(Dictionary<StatementState, AllowedTransition> tempTree,
             LexedTokenType tokenType,TransitionRecord transitionRecord,params StatementState[] ApplyToStates)
         {
@@ -140,7 +155,10 @@ namespace ChronEx.Parser
         NumericQuantifierEnd,
 
         EOF,
-        STATEMENT
+        STATEMENT,
+        AndGroupStart,
+        GroupCloser,
+        NegatedAndGroup
     }
 
     /// <summary>
