@@ -307,7 +307,22 @@ c
 
         }
 
+        [TestMethod]
+        public void AndGroup_TrailingSelectorAfterNumericGroup()
+        {
+            var script =
+@"(
+    a*
+    b
+){,4}
+.
+q";
+            var events = TestUtils.ChronListFromString("a a a a b a b a a b a a b r q");
+            var matches = ChronEx.Matches(script, events);
+            matches.AssertMatchesAreEqual(
+@"a,a,a,a,b,a,b,a,a,b,a,a,b,r,q");
 
+        }
 
         [TestMethod]
         public void AndGroup_AST_NegatedAndGroupNotAllowed()

@@ -109,7 +109,7 @@ namespace ChronEx.Processor
                 //so save the current loop item index and comapare afterwars
                 var currentEventIndex = eventenum.ConcreatedIndex;
                 var res = CurrentTracker.ProcessEvents(eventenum);
-                if (res.Is_Match())
+                if (res.Is_Match() && CurrentTracker.StoredList != null)
                 {
                     FoundTrackers.Add(CurrentTracker);
                 }
@@ -125,7 +125,8 @@ namespace ChronEx.Processor
                 CurrentTracker = null;
                 if(eventenum.ConcreatedIndex == currentEventIndex)
                 {
-                    break;
+                    eventenum.MoveNext();
+                    
                 }
             }
 

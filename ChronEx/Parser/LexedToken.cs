@@ -22,7 +22,9 @@ namespace ChronEx.Parser
             {'?',LexedTokenType.QUESTIONMARK},
             {'-',LexedTokenType.DASH },
             {'(',LexedTokenType.OPENPAREN },
-            {')',LexedTokenType.CLOSEPAREN }
+            {')',LexedTokenType.CLOSEPAREN },
+            {'[',LexedTokenType.OPENBRACKET },
+            {']',LexedTokenType.CLOSEBRACKET }
 
         };
 
@@ -72,6 +74,8 @@ namespace ChronEx.Parser
         DASH,
         OPENPAREN,
         CLOSEPAREN,
-        EXCLAMATIONOPENPAREN
+        EXCLAMATIONOPENPAREN,
+        OPENBRACKET,
+        CLOSEBRACKET
     }
 }

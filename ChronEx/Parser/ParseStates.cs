@@ -30,6 +30,7 @@ namespace ChronEx.Parser
             {"NEWLINE",Ntp(StatementState.BOS,null )},
             {"NUMERICQUANTIFIER",Ntp(StatementState.NumericQuantifierStart,()=>new NumericQuantifierSyntax()) },
             {"ANDGROUP",Ntp(StatementState.AndGroupStart,()=>new AndGroupElement()) },
+            {"ORGROUP",Ntp(StatementState.OrGroupStart,()=>new OrGroupElement()) },
             {"GROUPCLOSER",Ntp(StatementState.GroupCloser,()=>new GroupCloserPlaceHolderElement()) },
             {"NEGATEDGROUP",Ntp(StatementState.NegatedAndGroup,()=>throw new ParserException("Negated Groups are not allowed")) }
         };
@@ -58,7 +59,8 @@ namespace ChronEx.Parser
             AddToRoute(tempTree, LexedTokenType.DELIMITEDTEXT, new TransitionRecord("NAMESELECTOR"), statesLeadingtoSelectorTypes);
             AddToRoute(tempTree, LexedTokenType.REGEX, new TransitionRecord("REGEXSELECTOR"), statesLeadingtoSelectorTypes);
             AddToRoute(tempTree, LexedTokenType.OPENPAREN, new TransitionRecord("ANDGROUP"), statesLeadingtoSelectorTypes);
-            
+            AddToRoute(tempTree, LexedTokenType.OPENBRACKET, new TransitionRecord("ORGROUP"), statesLeadingtoSelectorTypes);
+
 
             //Add the states that can transition to either a EOL or a EOF
             var statesLeadingToEOFEOL = new StatementState[]
@@ -67,6 +69,7 @@ namespace ChronEx.Parser
                     StatementState.SymbolQuantifier,
                     StatementState.NumericQuantifierEnd,
                     StatementState.AndGroupStart,
+                    StatementState.OrGroupStart,
                     StatementState.GroupCloser
 
                 };
@@ -82,6 +85,7 @@ namespace ChronEx.Parser
 
             //A and group closing can only be the first item on the line
             AddToRoute(tempTree, LexedTokenType.CLOSEPAREN, new TransitionRecord("GROUPCLOSER"), StatementState.BOS);
+            AddToRoute(tempTree, LexedTokenType.CLOSEBRACKET, new TransitionRecord("GROUPCLOSER"), StatementState.BOS);
 
             //statements that can lead to Symbol quantifier - these are the selectors
             AddToRoute(tempTree, LexedTokenType.QUESTIONMARK, new TransitionRecord("SYMBOLQUANTIFIER"), StatementState.Selector);
@@ -158,7 +162,8 @@ namespace ChronEx.Parser
         STATEMENT,
         AndGroupStart,
         GroupCloser,
-        NegatedAndGroup
+        NegatedAndGroup,
+        OrGroupStart
     }
 
     /// <summary>
